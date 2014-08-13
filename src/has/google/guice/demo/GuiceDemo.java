@@ -1,5 +1,6 @@
 package has.google.guice.demo;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -10,8 +11,8 @@ public class GuiceDemo {
 
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new AddModule());
-		//injector.getInstance(Add.class) ½«»á´´½¨²¢·µ»ØÒ»¸ö SimpleAdd ÀàĞÍµÄÊµÀı
-		//Êµ¼ÊÉÏÊÇÍ¨¹ı AddModule.configure() ·½·¨À´»ñÈ¡¾ßÌåµÄ°ó¶¨ĞÅÏ¢µÄ¡£
+		//injector.getInstance(Add.class) å°†ä¼šåˆ›å»ºå¹¶è¿”å›ä¸€ä¸ª SimpleAdd ç±»å‹çš„å®ä¾‹
+		//å®é™…ä¸Šæ˜¯é€šè¿‡ AddModule.configure() æ–¹æ³•æ¥è·å–å…·ä½“çš„ç»‘å®šä¿¡æ¯çš„ã€‚
 		Add add = injector.getInstance(Add.class);
 		//
 		System.out.println(add.add(100,540));
@@ -24,7 +25,7 @@ public class GuiceDemo {
 		System.out.println(add.add(1, 2));
 	}
 }
-//¶¨Òå½Ó¿Ú,²¢ÊµÏÖ½Ó¿Ú
+//å®šä¹‰æ¥å£,å¹¶å®ç°æ¥å£
 interface Add{
 	public int add(int a,int b);
 }
@@ -37,16 +38,17 @@ class SimpleAdd implements Add{
 	}
 	
 }
-//¶¨ÒåModuleÀà
+//å®šä¹‰Moduleç±»
 class AddModule implements Module{
 
-	//½«Ò»Ğ© Bindings ÅäÖÃµ½Ä³¸ö ModuleÖĞ
+	//å°†ä¸€äº› Bindings é…ç½®åˆ°æŸä¸ª Moduleä¸­
 	@Override
 	public void configure(Binder binder) {
-		//ÔÚÏÂÃæµÄ´úÂëÖĞ£¬ÎÒÃÇ¸æËß Guice ½« SimpleAdd ÊµÏÖÀà°ó¶¨µ½ Add ½Ó¿ÚÉÏ£¬
-		//Ò²¾ÍÊÇËµÔÚ¿Í»§¶Ëµ÷ÓÃAdd.add() ·½·¨Ê±£¬Êµ¼Ê»áÈ¥Ö´ĞĞ SimpleAdd.add() ·½·¨
+		//åœ¨ä¸‹é¢çš„ä»£ç ä¸­ï¼Œæˆ‘ä»¬å‘Šè¯‰ Guice å°† SimpleAdd å®ç°ç±»ç»‘å®šåˆ° Add æ¥å£ä¸Šï¼Œ
+		//ä¹Ÿå°±æ˜¯è¯´åœ¨å®¢æˆ·ç«¯è°ƒç”¨Add.add() æ–¹æ³•æ—¶ï¼Œå®é™…ä¼šå»æ‰§è¡Œ SimpleAdd.add() æ–¹æ³•
 		binder.bind(Add.class).to(SimpleAdd.class);
 		System.out.println("Module configure");
+		
 	}
 	
 }
@@ -66,14 +68,26 @@ class ComplexAdd implements Add{
 	}
 	
 }
-//provider Ïàµ±ÓÚ´«Í³µÄ¹¤³§Ä£Ê½
-//ĞèÒª¶¨ÖÆ»¯Ò»¸ö¶ÔÏó´´½¨Á÷³Ì,Ê¹ÓÃProviders
+//provider ç›¸å½“äºä¼ ç»Ÿçš„å·¥å‚æ¨¡å¼
+//éœ€è¦å®šåˆ¶åŒ–ä¸€ä¸ªå¯¹è±¡åˆ›å»ºæµç¨‹,ä½¿ç”¨Providers
 class AddProvider implements Provider<Add>{
 
 	@Override
 	public Add get() {
-		System.out.println("½øĞĞ¸´³ğµÄ´´½¨¶ÔÏóÁ÷³Ì");
+		System.out.println("è¿›è¡Œå¤ä»‡çš„åˆ›å»ºå¯¹è±¡æµç¨‹");
 		return new ComplexAdd();
 	}
+	
+}
+
+//about module
+class MyModule extends AbstractModule{
+
+	@Override
+	protected void configure() {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	
 }
