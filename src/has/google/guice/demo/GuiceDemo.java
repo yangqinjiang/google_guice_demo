@@ -1,8 +1,18 @@
 package has.google.guice.demo;
 
+import has.google.guice.demo.CommonAnnotation.Bad;
+import has.google.guice.demo.CommonAnnotation.Good;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Guice;
+import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -12,163 +22,266 @@ public class GuiceDemo {
 
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new AddModule());
-		//injector.getInstance(Add.class) 将会创建并返回一个 SimpleAdd 类型的实例
-		//实际上是通过 AddModule.configure() 方法来获取具体的绑定信息的。
+		// injector.getInstance(Add.class) 将会创建并返回一个 SimpleAdd 类型的实例
+		// 实际上是通过 AddModule.configure() 方法来获取具体的绑定信息的。
 		Add add = injector.getInstance(Add.class);
 		//
-		System.out.println(add.add(100,540));
-		
-		//----
+		System.out.println(add.add(100, 540));
+
+		// ----
 		System.out.println("----------");
-		
+
 		Injector injector2 = Guice.createInjector(new AddModuleByProvider());
 		add = injector2.getInstance(Add.class);
 		System.out.println(add.add(1, 2));
-		//------
-		//Client c = new Client(service);
-		
-		//---
+		// ------
+		// Client c = new Client(service);
+
+		// ---
 		Injector injector3 = Guice.createInjector();
 		Person person = injector3.getInstance(Person.class);
 		person.displayInfo();
+		
+		//----
+		PlayerModule module = new PlayerModule();
+		Injector injector4 = Guice.createInjector(module);
+		
+		//使用Binding 注释
+		@Good Player player = (Player)injector4.getInstance(Player.class);
+		player.bat();
+		player.bowl();
+//		@Bad
+//		Player player2 =(Player)injector4.getInstance(Player.class);
+//		player2.bat();
+//		player2.bowl();
 	}
 }
-//定义接口,并实现接口
-interface Add{
-	public int add(int a,int b);
+
+// 定义接口,并实现接口
+interface Add {
+	public int add(int a, int b);
 }
-class SimpleAdd implements Add{
+
+class SimpleAdd implements Add {
 
 	@Override
 	public int add(int a, int b) {
 		System.out.println("Simple add");
-		return a+b;
+		return a + b;
 	}
-	
-}
-//定义Module类
-class AddModule implements Module{
 
-	//将一些 Bindings 配置到某个 Module中
+}
+
+// 定义Module类
+class AddModule implements Module {
+
+	// 将一些 Bindings 配置到某个 Module中
 	@Override
 	public void configure(Binder binder) {
-		//在下面的代码中，我们告诉 Guice 将 SimpleAdd 实现类绑定到 Add 接口上，
-		//也就是说在客户端调用Add.add() 方法时，实际会去执行 SimpleAdd.add() 方法
+		// 在下面的代码中，我们告诉 Guice 将 SimpleAdd 实现类绑定到 Add 接口上，
+		// 也就是说在客户端调用Add.add() 方法时，实际会去执行 SimpleAdd.add() 方法
 		binder.bind(Add.class).to(SimpleAdd.class);
 		System.out.println("Module configure");
-		
+
 	}
-	
+
 }
+
 //
-class AddModuleByProvider implements Module{
+class AddModuleByProvider implements Module {
 	@Override
 	public void configure(Binder binder) {
 		binder.bind(Add.class).toProvider(AddProvider.class);
 	}
 }
 
-class ComplexAdd implements Add{
+class ComplexAdd implements Add {
 
 	@Override
 	public int add(int a, int b) {
-		return a+b;
+		return a + b;
 	}
-	
+
 }
-//provider 相当于传统的工厂模式
-//需要定制化一个对象创建流程,使用Providers
-class AddProvider implements Provider<Add>{
+
+// provider 相当于传统的工厂模式
+// 需要定制化一个对象创建流程,使用Providers
+class AddProvider implements Provider<Add> {
 
 	@Override
 	public Add get() {
 		System.out.println("进行复仇的创建对象流程");
 		return new ComplexAdd();
 	}
-	
+
 }
 
-//about module
-class MyModule extends AbstractModule{
+// about module
+class MyModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
-	
+
 }
 
 class Client {
-	//我们是基于构造方法层次 （Constrcctor-level）的 注入，
-	//并且假设 MyService 接口的具体实现已经在应用程序的 Module 中定义映射好了
+	// 我们是基于构造方法层次 （Constrcctor-level）的 注入，
+	// 并且假设 MyService 接口的具体实现已经在应用程序的 Module 中定义映射好了
 	@Inject
-	public Client(MyService service){
-		
+	public Client(MyService service) {
+
 	}
 }
-interface IService{
+
+interface IService {
 	void say(String s);
 }
-class MyService implements IService{
+
+class MyService implements IService {
 
 	@Override
 	public void say(String s) {
-		System.out.println("say :"+s);
+		System.out.println("say :" + s);
 	}
-	
+
 }
-class MyServiceModule implements Module{
+
+class MyServiceModule implements Module {
 
 	@Override
 	public void configure(Binder binder) {
 		binder.bind(IService.class).to(MyService.class);
 	}
-	
+
 }
 
-//-----
-//处理多个依赖 （Multiple Dependencies）
-//这一小节里面，我们将探讨如何是用 @Inject 注释来处理多个依赖。
-//比方说有一个对象直接依赖其它两个或者多个对象。这里我们创建一个简单的 Case ，一个人有一台笔记和一个手机。
-class Laptop{
+// -----
+// 处理多个依赖 （Multiple Dependencies）
+// 这一小节里面，我们将探讨如何是用 @Inject 注释来处理多个依赖。
+// 比方说有一个对象直接依赖其它两个或者多个对象。这里我们创建一个简单的 Case ，一个人有一台笔记和一个手机。
+class Laptop {
 	private String model;
 	private String price;
-	public Laptop(){
-		this.model="lenovo";
-		this.price="$123456789";
+
+	public Laptop() {// 使用@Inject时,默认调用无参构造函数
+		this.model = "lenovo";
+		this.price = "$123456789";
 	}
+
 	@Override
 	public String toString() {
 		return "Laptop [model=" + model + ", price=" + price + "]";
 	}
-	
+
 }
+
 //
-class Mobile{
+class Mobile {
 	private String number;
-	public Mobile(){
-		this.number="15976543860";
+
+	public Mobile() {// 使用@Inject时,默认调用无参构造函数
+		this.number = "15976543860";
 	}
+
 	@Override
 	public String toString() {
 		return "Mobile [number=" + number + "]";
 	}
-	
+
 }
-//接下来我们将会在 Person 类中使用 @Inject 注释来直接引用 Laptop 和 Mobile 对象。注意我们这儿使用的是构造方法层次上的注入
-class Person{
+
+// 接下来我们将会在 Person 类中使用 @Inject 注释来直接引用 Laptop 和 Mobile 对象。注意我们这儿使用的是构造方法层次上的注入
+class Person {
 	private Mobile mobile;
 	private Laptop laptop;
+
 	@Inject
 	public Person(Mobile mobile, Laptop laptop) {
 		this.mobile = mobile;
 		this.laptop = laptop;
 	}
-	public void displayInfo(){
-		System.out.println("Mobile:"+mobile);
-		System.out.println("Laptop:"+laptop);
+
+	public void displayInfo() {
+		System.out.println("Mobile:" + mobile);
+		System.out.println("Laptop:" + laptop);
+	}
+
+}
+
+// --------
+// 使用 Binding 注释
+// 在 Guice 中，一个类型不能绑定多个实现，如下，代码会抛 Runtime Error.
+
+// binderObject.bind(SomeType.class).to(ImplemenationOne.class);
+// binderObject.bind(SomeType.class).to(ImplemenationTwo.class);
+// 由于 Guice 并不知道客户端究竟要绑定哪一个实现类，因此抛出了异常。但是在类似 Java 的语言中，
+// 一个类可以实现多个接口，基于这个思想，Guice 提供了一种依赖 Binding 注释的方式来实现一个类型绑定多个实现。
+// 例如，接口 Player 定义如下，
+
+@ImplementedBy(GoodPlayer.class)
+interface Player {
+	void bat();
+
+	void bowl();
+}
+
+// 接着我们提供了 Player 的两种实现类， GoodPlayer 和 BadPlayer。
+class GoodPlayer implements Player {
+
+	@Override
+	public void bat() {
+		System.out.println("I can hit any ball");
+	}
+
+	@Override
+	public void bowl() {
+		System.out.println("I can also bowl");
+
+	}
+
+}
+class BadPlayer implements Player {
+
+	@Override
+	public void bat() {
+		System.out.println("I think i can face the ball");
+	}
+
+	@Override
+	public void bowl() {
+		System.out.println("I don't know bowling");
+
+	}
+
+}
+//通过一些注释机制 （Annotaion mechanisms） 我们可以指示 Guice 使用不同的实现
+class PlayerModule implements Module{
+
+	@Override
+	public void configure(Binder binder) {
+		//我们分别使用了.annotatedWith(Good.class) 和 .annotatedWith(Bad.class)， 
+		//这两处代码指明了如果使用Good注释，那么就绑定GoodPlayer实现类，如果使用了Bad注释，那么就绑定BadPlayer实现类
+		binder.bind(Player.class).annotatedWith(Good.class).to(GoodPlayer.class);
+		binder.bind(Player.class).annotatedWith(Bad.class).to(BadPlayer.class);
 	}
 	
 }
+//我们使用了两个自定义的 Annotation，Good 和 Bad。下面我们给出 Good annotation 和 Bad annotation 的代码。
+class CommonAnnotation{
+	
+	@Retention(RetentionPolicy.RUNTIME)
+	@BindingAnnotation
+	@Target(ElementType.LOCAL_VARIABLE)
+	public @interface Good{}
+	
+	@Retention(RetentionPolicy.RUNTIME)
+	@BindingAnnotation
+	@Target(ElementType.LOCAL_VARIABLE)
+	public @interface Bad{}
+	
+}
+
+
