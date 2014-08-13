@@ -8,6 +8,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import javax.inject.Named;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.BindingAnnotation;
@@ -17,6 +19,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.name.Names;
 
 public class GuiceDemo {
 
@@ -54,6 +57,25 @@ public class GuiceDemo {
 //		Player player2 =(Player)injector4.getInstance(Player.class);
 //		player2.bat();
 //		player2.bowl();
+		//-------------
+		
+		PlayerModuleByNames module2 = new PlayerModuleByNames();
+		Injector injector5 = Guice.createInjector(module2);
+		
+//		@Named("Good") 
+//		Player player2 = (Player)injector5.getInstance(Player.class);
+//		player2.bat();
+//		player2.bowl();
+		@Named("Bad") 
+		Player player3 =(Player)injector5.getInstance(Player.class);
+		player3.bat();
+		player3.bowl();
+		
+		//--------------
+		Injector injector6 = Guice.createInjector(new ConnectionModule());
+		MockConnection connection = injector6.getInstance(MockConnection.class);
+		connection.connect();
+		connection.disConnect();
 	}
 }
 
@@ -221,7 +243,7 @@ class Person {
 // 一个类可以实现多个接口，基于这个思想，Guice 提供了一种依赖 Binding 注释的方式来实现一个类型绑定多个实现。
 // 例如，接口 Player 定义如下，
 
-@ImplementedBy(GoodPlayer.class)
+@ImplementedBy(BadPlayer.class)
 interface Player {
 	void bat();
 
@@ -269,6 +291,18 @@ class PlayerModule implements Module{
 	}
 	
 }
+//Named注释
+class PlayerModuleByNames implements Module{
+
+	@Override
+	public void configure(Binder binder) {
+		//像上面例子中，如果只是为了标记实现类以便于客户端使用，而为每一个实现类创建新的 Annotation ，那么是完全没有必要的。我们可以使用 @Named 注释来命名这些 entities。这儿有一个工具方法 － Names.named() ，当你给它一个命名，它会返回好一个命名好的 Annotation。
+		//例如上面的例子中，在 Player Module 中可以使用 Names.named() 来完成一些相同的事情。
+		binder.bind(Player.class).annotatedWith(Names.named("Good")).to(GoodPlayer.class);
+		binder.bind(Player.class).annotatedWith(Names.named("Bad")).to(BadPlayer.class);
+	}
+	
+}
 //我们使用了两个自定义的 Annotation，Good 和 Bad。下面我们给出 Good annotation 和 Bad annotation 的代码。
 class CommonAnnotation{
 	
@@ -284,4 +318,35 @@ class CommonAnnotation{
 	
 }
 
+//一个简单的 Provider
+//在 Guice 中 Providers 就像 Factories 一样创建和返回对象。
+//在大部分情况下，客户端可以直接依赖 Guice 框架来为服务（Services）创建依赖的对象。
+//但是少数情况下，应用程序代码需要为一个特定的类型定制对象创建流程（Object creation process），
+//这样可以控制对象创建的数量，提供缓存（Cache）机制等，这样的话我们就要依赖 Guice 的 Provider 类。
+class MockConnection{
+	public void connect(){
+		System.out.println("Connecting to the mock database");
+	}
+	public void disConnect(){
+		System.out.println("Dis-connecting from the mock database");
+	}
+}
+//现在我们来写一个简单的 Provider 类来实现 Guice 的 Provider 接口，使用它创建并返 MockConnection对象，代码如下
+class ConnectionProvider implements Provider<MockConnection>{
 
+	@Override
+	public MockConnection get() {
+		MockConnection connection = new MockConnection();
+		return connection;
+	}
+	
+}
+class ConnectionModule implements Module{
+
+	@Override
+	public void configure(Binder binder) {
+		//注意第10行，我们使用 toProvider() 方法将 MockConnection.class 绑定到一个 Provider 上。
+		binder.bind(MockConnection.class).toProvider(ConnectionProvider.class);
+	}
+	
+}
