@@ -20,6 +20,7 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
 public class GuiceDemo {
@@ -315,6 +316,17 @@ class ExplicitModule extends AbstractModule{
 	@Override
 	protected void configure() {
 		bind(BadPlayer.class);
+	}
+}
+//Eager Singleton Loading
+class EagerSingletonModule extends AbstractModule{
+	@Override
+	protected void configure() {
+		//方式一,不推荐
+		//bind(Player.class).to(BadPlayer.class).in(Singleton.class);
+		//Eager Singleton Loading,提交加载单例
+		bind(Player.class).to(BadPlayer.class).asEagerSingleton();
+		//
 	}
 }
 //我们使用了两个自定义的 Annotation，Good 和 Bad。下面我们给出 Good annotation 和 Bad annotation 的代码。
