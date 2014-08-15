@@ -17,6 +17,7 @@ import com.google.inject.Guice;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.name.Names;
@@ -59,17 +60,23 @@ public class GuiceDemo {
 //		player2.bowl();
 		//-------------
 		
-		PlayerModuleByNames module2 = new PlayerModuleByNames();
-		Injector injector5 = Guice.createInjector(module2);
+		//PlayerModuleByNames module2 = new PlayerModuleByNames();
+		//Injector injector5 = Guice.createInjector(module2);
+		
+		ExplicitModule explicitModule = new ExplicitModule();
+		Injector injector5 = Guice.createInjector(explicitModule);
+		
 		
 //		@Named("Good") 
 //		Player player2 = (Player)injector5.getInstance(Player.class);
 //		player2.bat();
 //		player2.bowl();
-		@Named("Bad") 
+//		@Named("Bad") 
 		Player player3 =(Player)injector5.getInstance(Player.class);
+		System.out.println("-----------");
 		player3.bat();
 		player3.bowl();
+		System.out.println("-----------");
 		
 		//--------------
 		Injector injector6 = Guice.createInjector(new ConnectionModule());
@@ -243,7 +250,7 @@ class Person {
 // 一个类可以实现多个接口，基于这个思想，Guice 提供了一种依赖 Binding 注释的方式来实现一个类型绑定多个实现。
 // 例如，接口 Player 定义如下，
 
-@ImplementedBy(BadPlayer.class)
+@ImplementedBy(GoodPlayer.class)
 interface Player {
 	void bat();
 
@@ -302,6 +309,13 @@ class PlayerModuleByNames implements Module{
 		binder.bind(Player.class).annotatedWith(Names.named("Bad")).to(BadPlayer.class);
 	}
 	
+}
+//AbstractModule
+class ExplicitModule extends AbstractModule{
+	@Override
+	protected void configure() {
+		bind(BadPlayer.class);
+	}
 }
 //我们使用了两个自定义的 Annotation，Good 和 Bad。下面我们给出 Good annotation 和 Bad annotation 的代码。
 class CommonAnnotation{
