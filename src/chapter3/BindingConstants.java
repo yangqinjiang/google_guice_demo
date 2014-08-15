@@ -21,7 +21,7 @@ public class BindingConstants {
 
 class ConcerHall{
 	@Inject @Named("capacity")
-	private int capacity;
+	private Integer capacity;
 	
 	@Override
 	public String toString() {
