@@ -3,12 +3,21 @@ package has.google.guice.demo;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import static has.google.guice.AssertUtils.*;
 
 public class FortuneDemo {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		chefTest();
+		chefTestWithFactory();
+	}
+
+	private static void chefTestWithFactory() {
+		FortuneServiceMock mock = new FortuneServiceMock();
+		Chef chef = new Chef(mock);
+		chef.makeFortuneCookie();
+		assertTrue(mock.calledOnce());
 	}
 
 	private static void chefTest() {
@@ -19,14 +28,13 @@ public class FortuneDemo {
 			FortuneServiceFactory.setFortuneService(mock);
 			Chef chef = new Chef();
 			chef.makeFortuneCookie();
-			if(mock.calledOnce()){
-				System.out.println("OKkkkkk");
-			}
+			assertTrue(mock.calledOnce());
 		}finally{
 			FortuneServiceFactory.setFortuneService(original);
 		}
 		
 	}
+	
 
 }
 
@@ -64,6 +72,10 @@ class Chef{
 	public Chef(){
 		this.fortuneService = FortuneServiceFactory.getFortuneService();
 	}
+	//摆脱构造工厂 Chef goes DI
+	public Chef(FortuneService fortuneService){
+		this.fortuneService = fortuneService;
+	}
 	public void makeFortuneCookie(){
 		new FortuneCookie(fortuneService.randomForturn());
 	}
@@ -79,7 +91,7 @@ class FortuneServiceFactory{
 	private FortuneServiceFactory(){}
 	
 	private static FortuneService fortuneService = new ForturnServiceImpl();
-	
+	//Static method calls are hard to test
 	public static FortuneService getFortuneService(){
 		return fortuneService;
 	}
