@@ -3,6 +3,12 @@ package has.google.guice.demo;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+
+import com.google.inject.Binder;
+import com.google.inject.Inject;
+import com.google.inject.Module;
+import com.google.inject.Scopes;
+
 import static has.google.guice.AssertUtils.*;
 
 public class FortuneDemo {
@@ -73,6 +79,7 @@ class Chef{
 		this.fortuneService = FortuneServiceFactory.getFortuneService();
 	}
 	//摆脱构造工厂 Chef goes DI
+	@Inject	//Guice Style 使用Inject
 	public Chef(FortuneService fortuneService){
 		this.fortuneService = fortuneService;
 	}
@@ -98,4 +105,21 @@ class FortuneServiceFactory{
 	public static void setFortuneService(FortuneService  mockFortuneService){
 		fortuneService = mockFortuneService;
 	}
+}
+
+//--------------------
+//
+//  Google Guice Style
+//
+//------------------------
+
+class ChefModule implements Module{
+
+	@Override
+	public void configure(Binder binder) {
+		binder.bind(FortuneService.class)
+			.to(ForturnServiceImpl.class)//
+			.in(Scopes.SINGLETON);//单例
+	}
+	
 }
