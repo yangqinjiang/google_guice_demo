@@ -16,8 +16,10 @@ import com.google.inject.BindingAnnotation;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import com.google.inject.Stage;
 
 import static has.google.guice.AssertUtils.*;
@@ -26,11 +28,12 @@ public class FortuneDemo {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		chefTest();
-		chefTestWithFactory();
+//		chefTest();
+//		chefTestWithFactory();
 		//
 //		bootstrapping1();
-		bootstrapping2();
+		//bootstrapping2();
+		bootstrapping3();
 	}
 
 	private static void bootstrapping1() {
@@ -48,6 +51,10 @@ public class FortuneDemo {
 
 	}
 
+	private static void bootstrapping3() {//geting an instance by its Key
+		
+	}
+	
 	private static void chefTestWithFactory() {
 		FortuneServiceMock mock = new FortuneServiceMock();
 		Chef chef = new Chef(mock);
@@ -84,6 +91,7 @@ class ForturnServiceImpl implements FortuneService {
 
 	@Override
 	public String randomForturn() {
+		System.out.println("ForturnServiceImpl : randomForturn");
 		// 随机获取其中一条数据
 		return MESSAGES.get(new Random().nextInt(MESSAGES.size()));
 	}
@@ -194,6 +202,7 @@ class BindingAnnotationModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
+		//在这里配置
 		bind(FortuneService.class).to(ForturnServiceImpl.class);
 		bind(FortuneService.class).annotatedWith(Mega.class).to(
 				MegaFortuneService.class);
@@ -201,6 +210,27 @@ class BindingAnnotationModule extends AbstractModule {
 	}
 }
 
+class ScopedModule extends AbstractModule{
+
+	@Override
+	protected void configure() {
+		bind(FortuneService.class).to(ForturnServiceImpl.class).in(Singleton.class);
+		bind(FortuneService.class).annotatedWith(Mega.class).to(MegaFortuneService.class).in(Scopes.SINGLETON);
+	}
+	
+}
+
+//Eager singleton loading
+//Stage.PRODUCTIONloads singletons eagerly; Stage.DEVELOPMENTdoes not. 
+class EagerSingletonModule2 extends AbstractModule{
+
+	@Override
+	protected void configure() {
+		bind(FortuneService.class).to(ForturnServiceImpl.class).asEagerSingleton();
+		bind(FortuneService.class).annotatedWith(Mega.class).to(MegaFortuneService.class).asEagerSingleton();
+	}
+	
+}
 
 class Anno {
 
