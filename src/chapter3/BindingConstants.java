@@ -33,6 +33,7 @@ class ConcerModule extends AbstractModule{
 	@Override
 	protected void configure() {
 		//bind constant
-		bindConstant().annotatedWith(Names.named("capacity")).to(322);;
+		//Listing 3-12. ConcertExample Modified to Use String 
+		bindConstant().annotatedWith(Names.named("capacity")).to("322");;
 	}
 }
