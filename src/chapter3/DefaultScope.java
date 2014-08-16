@@ -54,6 +54,7 @@ class CustomScopes{
 	
 }
 
+@DefaultScoped
 class Person{
 	public Person(){
 		System.out.printf("Hi,I'm a Person.With hashCode '%s' ,I'm unique!%n",super.hashCode());
@@ -79,6 +80,6 @@ class CustomScopeByAnnotationModule extends AbstractModule{
 	@Override
 	protected void configure() {
 		bindScope(DefaultScoped.class, CustomScopes.DEFAULT);//绑定scope
-		bind(Person.class).in(DefaultScoped.class);
+		//bind(Person.class).in(DefaultScoped.class);//使用注解方式,就不需要这行代码了 @DefaultScoped
 	}
 }
