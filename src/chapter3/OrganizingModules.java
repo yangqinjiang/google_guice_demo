@@ -10,9 +10,19 @@ public class OrganizingModules {
 
 	public static void main(String[] args) {
 		//separateModule();
-		binderinstall();
+		//binderinstall();
+		
+		useCustomScopeWithAppModule();
+		
 	}
 	
+
+	private static void useCustomScopeWithAppModule() {
+		Injector i=Guice.createInjector(new ApplicationModule());
+		i.getInstance(Person.class);
+		i.getInstance(Person.class);
+	}
+
 
 	private static void binderinstall() {
 		Injector i=Guice.createInjector(new BindingsModule());
@@ -45,8 +55,17 @@ class BindingsModule extends AbstractModule{
 	@Override
 	protected void configure() {
 		//自己绑定依赖项
-		install(new DefaultScopeModule());
+		//install(new DefaultScopeModule());
 		bind(Person.class).in(DefaultScoped.class);
 	}
 	
+}
+
+//application Module
+class ApplicationModule extends AbstractModule{
+	@Override
+	protected void configure() {
+		install(new DefaultScopeModule());//在各自的module.configure方法里,不能绑定其它的module里,
+		install(new BindingsModule());
+	}
 }
