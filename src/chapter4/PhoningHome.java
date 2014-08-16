@@ -8,6 +8,7 @@ import java.util.Map;
 
 
 
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -59,7 +60,9 @@ class PhoneModule extends AbstractModule{
 		bindInterceptor(
 				subclassesOf(Phone.class),
 				returns(only(Receiver.class)),
-				new PhoneLoggerInterceptor());
+				new PhoneLoggerInterceptor(),//打印日志
+				new PhoneRedirectInterceptor()//重定向
+				);
 	}
 }
 class PhoneLoggerInterceptor implements MethodInterceptor{
@@ -74,5 +77,12 @@ class PhoneLoggerInterceptor implements MethodInterceptor{
 		}
 		return invocation.proceed();//继续执行
 	}
-	
+}
+
+class PhoneRedirectInterceptor implements MethodInterceptor{
+	@Override
+	public Object invoke(MethodInvocation arg0) throws Throwable {
+		
+		return new Receiver("Alberto's Pizza Place.");//返回另一个Receiver
+	}
 }
